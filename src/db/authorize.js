@@ -4,19 +4,18 @@ const fs = require("fs");
 const TOKEN_PATH = "token.json";
 
 const authorize = (credentials, callback) => {
-  const { client_secret, client_id, redirect_uris } = credentials;
-  const oAuth2Client = new google.auth.OAuth2(
-    client_id,
-    client_secret,
+  const { clientSecret, clientId, redirect_uris } = credentials;
+  return (oAuth2Client = new google.auth.OAuth2(
+    clientId,
+    clientSecret,
     redirect_uris[0]
-  );
+  ));
 
   // Check if we have previously stored a token.
   fs.readFile(TOKEN_PATH, (err, token) => {
     if (err) return getNewToken(oAuth2Client, callback);
-    oAuth2Client.setCredentials(JSON.parse(token));
-    console.log(oAuth2Client);
-    // callback(oAuth2Client);
+    oAuth2Client.setCredentials(JSON.parse(token), callback);
+    callback(oAuth2Client);
   });
 };
 

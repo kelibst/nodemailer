@@ -8,11 +8,12 @@ function getNewToken(oAuth2Client, callback) {
     access_type: "offline",
     scope: SCOPES,
   });
-  console.log("Authorize this app by visiting this url:", authUrl);
-  const rl = readline.createInterface({
-    input: process.stdin,
-    output: process.stdout,
-  });
+  return authUrl;
+  // console.log("Authorize this app by visiting this url:", authUrl);
+  // const rl = readline.createInterface({
+  //   input: process.stdin,
+  //   output: process.stdout,
+  // });
   rl.question("Enter the code from that page here: ", (code) => {
     rl.close();
     oAuth2Client.getToken(code, (err, token) => {
