@@ -4,6 +4,7 @@ const Token = require("../db/models/tokenModel");
 const router = new express.Router();
 const SCOPES = ["https://mail.google.com/"];
 const axios = require("axios");
+const Emails = require("../db/models/emailModel");
 
 router.get("/v1/token/:clientSecret/:clientId", async (req, res) => {
   const { clientSecret, clientId } = req.params;
@@ -25,11 +26,9 @@ router.get("/auth", async (req, res) => {
   try {
     const { code } = req.query;
     const token = await oAuth2Client.getToken(code);
-    console.log(token.tokens);
     const savedToken = await Token(token.tokens);
     savedToken.save();
-    const { access_token, scope, token_type, expiry_date } = token.tokens;
-    res.status(201).send({ access_token, scope, token_type });
+    res.status(201).send(savedToken);
     await oAuth2Client.setCredentials(token);
   } catch (error) {
     res.status(400).send(error);
@@ -51,7 +50,12 @@ router.get("/v1/mails", async (req, res) => {
   };
 
   axios(config)
-    .then(function (response) {
+    .then(async function (response) {
+      try {
+        await Emails(response.data);
+      } catch (error) {
+        res.status(500).send(error);
+      }
       return res.status(200).send(response.data);
     })
     .catch(function (error) {
