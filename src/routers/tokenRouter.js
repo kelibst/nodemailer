@@ -26,9 +26,16 @@ router.get("/auth", async (req, res) => {
   try {
     const { code } = req.query;
     const token = await oAuth2Client.getToken(code);
-    const savedToken = await Token(token.tokens);
-    savedToken.save();
-    res.status(201).send(savedToken);
+    const storedToken = await Token.find({});
+
+    if (storedToken.length) {
+      await storedToken[storedToken.length - 1].updateOne(token.tokens);
+      res.status(204).send(token.tokens);
+    } else {
+      const savedToken = await Token(token.tokens);
+      savedToken.save();
+      res.status(201).send(savedToken);
+    }
     await oAuth2Client.setCredentials(token);
   } catch (error) {
     res.status(400).send(error);
@@ -36,8 +43,8 @@ router.get("/auth", async (req, res) => {
 });
 
 router.get("/v1/mails", async (req, res) => {
-  const curToken = await Token.findById("6250465e86c219cdcda1bab4");
-  if (!curToken.access_token) {
+  let curToken = await Token.find({});
+  if (!curToken[0].access_token) {
     return res.status(400).send("unable to get access token from the database");
   }
 
@@ -45,14 +52,15 @@ router.get("/v1/mails", async (req, res) => {
     method: "get",
     url: "https://gmail.googleapis.com/gmail/v1/users/me/messages",
     headers: {
-      Authorization: `Bearer ${curToken.access_token}`,
+      Authorization: `Bearer ${curToken[0].access_token}`,
     },
   };
 
   axios(config)
     .then(async function (response) {
       try {
-        await Emails(response.data);
+        const storeEmails = await Emails(response.data);
+        storeEmails.save();
       } catch (error) {
         res.status(500).send(error);
       }
