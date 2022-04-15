@@ -5,14 +5,14 @@ const router = new express.Router();
 const SCOPES = ["https://mail.google.com/"];
 const axios = require("axios");
 const Emails = require("../db/models/emailModel");
+require("dotenv").config();
 
-router.get("/v1/token/:clientSecret/:clientId", async (req, res) => {
-  const { clientSecret, clientId } = req.params;
+router.get("/v1/token", async (req, res) => {
+  const { clientSecret, clientId } =  process.env;
   const redirect_uris = ["http://localhost:3001/auth"];
-
   const oAuth2Client = authorize({
-    clientSecret,
-    clientId,
+    clientId: clientId,
+    clientSecret: clientSecret,
     redirect_uris,
   });
   const authUrl = oAuth2Client.generateAuthUrl({
