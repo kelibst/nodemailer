@@ -1,6 +1,6 @@
 const mongoose = require("mongoose");
 
-const emailsSchema = new mongoose.Schema({
+const emailSchema = new mongoose.Schema({
   messages: [
     {
       id: {
@@ -9,18 +9,26 @@ const emailsSchema = new mongoose.Schema({
       },
       threadId: {
         type: String,
-        required: true,
       },
+      labelIds: {
+        type: Array
+      },
+      snippet: {
+        type: String
+      }
     },
   ],
-  nextPageToken: {
+  sizeEstimate: {
     type: String,
   },
-  resultsSizeEstimate: {
-    type: Number,
+  sizeEstimate: {
+    type: String,
   },
+  internalDate: {
+    type: String,
+  }
 });
 
-const Emails = mongoose.model("Emails", emailsSchema);
+const Emails = mongoose.model("Emails", emailSchema);
 
 module.exports = Emails;
