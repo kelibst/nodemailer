@@ -5,6 +5,8 @@ const router = new express.Router();
 const SCOPES = ["https://mail.google.com/"];
 const axios = require("axios");
 const EmailsList = require("../db/models/emailsModel");
+const Emails = require("../db/models/emailModel");
+const fetchEmail = require("../db/gmails/fetchEmail");
 require("dotenv").config();
 
 router.get("/v1/token", async (req, res) => {
@@ -73,46 +75,25 @@ router.get("/v1/mails/list", async (req, res) => {
 
 router.get("/v1/mails", async (req, res) => {
   const emailList = await EmailsList.find({});
-  // const emails = Promise.all()
-
-  const getEmail = async (id, token) => {
-    const config = {
-      method: "get",
-      url: `https://gmail.googleapis.com/gmail/v1/users/me/messages/${id}`,
-      headers: {
-        Authorization: `Bearer ${token}`,
-      },
-    };
-
-    return await axios(config);
-  };
-
-  const fetchEmail = async (messages) => {
-    let curToken = await Token.find({});
-    if (!curToken[0].access_token) {
-      return res.status(400).send("unable to get access token");
-    }
-    const requ = messages.slice(0, 19).map((mes) => {
-      return getEmail(mes.id, curToken[0].access_token).then((res) => {
-        console.log(res.data);
-        return res.data;
-      });
-    });
-    return Promise.all(requ);
-  };
 
   if (emailList[0]?.messages?.length) {
     for (let i = 0; i < 19; i++) {}
     try {
-      fetchEmail(emailList[0]?.messages).then((response) => {
+      fetchEmail(emailList[0]?.messages).then(async (response) => {
         // console.log(response);
+        const storeMails = await Emails.find({});
+        if (storeMails.length) {
+          // await storeMails[0].updateOne(response);
+        } else {
+          const saveEmails = await Emails(response);
+          saveEmails.save();
+        }
         return res.status(200).send(response);
       });
     } catch (error) {
       return res.status(400).send(error);
     }
   } else {
-    // console.log(emailList[0].messages);
     return "Unablet to get email list";
   }
 });
