@@ -1,0 +1,2 @@
+clientSecret=GOCSPX-samplecodehere
+clientId=sampleclientId here
